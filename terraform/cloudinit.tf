@@ -1,25 +1,22 @@
 resource "proxmox_vm_qemu" "cloudinit-k3s-master" {
-  target_node = "s1"
-  desc        = "Cloudinit debian  - K3s Master"
   count       = 2
-  vmid        = 100 + count.index  # Generera unika VMID baserat på index
-  onboot      = true
-  clone       = "KubernetesNodeTemplate"
-  agent       = 1
-
-  os_type     = "cloud-init"
-  cores       = 2
-  sockets     = 1
-  vcpus       = 0
-  numa        = false
-  cpu         = "host"
-  memory      = 4096
   name        = "k3s-master-${count.index + 1}"
-
+  desc        = "Cloudinit Debian - K3s Master ${count.index + 1}"
+  target_node = var.proxmox_host
+  clone       = var.template_name
+  vmid        = 100 + count.index
+  onboot      = true
+  agent       = 1
+  os_type     = "cloud-init"
+  memory      = 4096
+  sockets     = 1
+  cores       = 2
+  vcpus       = 0
+  cpu_type    = "host"
+  numa        = false
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
 
-  # Setup the disk
   disks {
     ide {
       ide2 {
@@ -31,53 +28,48 @@ resource "proxmox_vm_qemu" "cloudinit-k3s-master" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-lvm"
           size    = 20
+          storage = "local-lvm"
         }
       }
     }
   }
 
   network {
+    id = 0
     model  = "virtio"
     bridge = "vmbr0"
   }
 
   ipconfig0 = "ip=192.168.68.15${count.index + 1}/24,gw=192.168.68.1"
-  ciuser    = "debian"
+  ciuser    = var.ciuser
+  sshkeys   = local.ssh_key
+
   serial {
     id   = 0
     type = "socket"
   }
-
-
-  sshkeys = <<EOF
-ssh-rsa key
-EOF
 }
 
 resource "proxmox_vm_qemu" "cloudinit-k3s-worker" {
-  target_node = "s1"
-  desc        = "Cloudinit debian  - K3s Worker"
   count       = 3
-  vmid        = 200 + count.index  # Generera unika VMID baserat på index
-  onboot      = true
-  clone       = "KubernetesNodeTemplate"
-  agent       = 1
-
-  os_type     = "cloud-init"
-  cores       = 2
-  sockets     = 1
-  vcpus       = 0
-  numa        = false
-  cpu         = "host"
-  memory      = 4096
   name        = "k3s-worker-${count.index + 1}"
-
+  desc        = "Cloudinit Debian - K3s Worker ${count.index + 1}"
+  target_node = var.proxmox_host
+  clone       = var.template_name
+  vmid        = 200 + count.index
+  onboot      = true
+  agent       = 1
+  os_type     = "cloud-init"
+  memory      = 4096
+  sockets     = 1
+  cores       = 2
+  vcpus       = 0
+  cpu_type    = "host"
+  numa        = false
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
 
-  # Setup the disk
   disks {
     ide {
       ide2 {
@@ -89,53 +81,48 @@ resource "proxmox_vm_qemu" "cloudinit-k3s-worker" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-lvm"
           size    = 15
+          storage = "local-lvm"
         }
       }
     }
   }
 
   network {
+    id = 0
     model  = "virtio"
     bridge = "vmbr0"
   }
 
   ipconfig0 = "ip=192.168.68.16${count.index + 1}/24,gw=192.168.68.1"
-  ciuser    = "debian"
+  ciuser    = var.ciuser
+  sshkeys   = local.ssh_key
 
   serial {
     id   = 0
     type = "socket"
   }
-
-  sshkeys = <<EOF
-ssh-rsa key
-EOF
 }
 
 resource "proxmox_vm_qemu" "cloudinit-k3s-ansible" {
-  target_node = "s1"
-  desc        = "Cloudinit debian  - K3s Ansible"
   count       = 1
-  vmid        = 300 + count.index  # Generera unika VMID baserat p   index
-  onboot      = true
-  clone       = "KubernetesNodeTemplate"
-  agent       = 1
-
-  os_type     = "cloud-init"
-  cores       = 2
-  sockets     = 1
-  vcpus       = 0
-  numa        = false
-  cpu         = "host"
-  memory      = 4096
   name        = "k3s-ansible-${count.index + 1}"
-
+  desc        = "Cloudinit Debian - K3s Ansible"
+  target_node = var.proxmox_host
+  clone       = var.template_name
+  vmid        = 300 + count.index
+  onboot      = true
+  agent       = 1
+  os_type     = "cloud-init"
+  memory      = 4096
+  sockets     = 1
+  cores       = 2
+  vcpus       = 0
+  cpu_type    = "host"
+  numa        = false
   scsihw      = "virtio-scsi-pci"
   bootdisk    = "scsi0"
 
-  # Setup the disk
   disks {
     ide {
       ide2 {
@@ -147,27 +134,25 @@ resource "proxmox_vm_qemu" "cloudinit-k3s-ansible" {
     scsi {
       scsi0 {
         disk {
-          storage = "local-lvm"
           size    = 20
+          storage = "local-lvm"
         }
       }
     }
   }
 
   network {
+    id = 0
     model  = "virtio"
     bridge = "vmbr0"
   }
 
-  ipconfig0 = "ip=192.168.68.18${count.index + 1}/24,gw=192.168.68.1"
-  ciuser    = "debian"
+  ipconfig0 = "ip=192.168.68.181/24,gw=192.168.68.1"
+  ciuser    = var.ciuser
+  sshkeys   = local.ssh_key
+
   serial {
     id   = 0
     type = "socket"
   }
-
-
-sshkeys = <<EOF
-ssh-rsa key
-EOF
 }
